@@ -1,19 +1,36 @@
+import asyncio
 from aiogram import Bot, Dispatcher
-from aiogram.types import Message
-from aiogram.filters import Command
-import sqlite3
+from aiogram.fsm.storage.memory import MemoryStorage
+
 import config
+from database.database import init_db
+from utils.schedule_utils import init_schedule
+from utils.notification_utils import send_daily_reminders
 
-bot = Bot(config.token)
-dp = Dispatcher()
-
-
-@dp.message(Command['start'])
-async def start(message: Message):
-    await message.answer("Привет!")
-
+# Импортируем обработчики
+from handlers.client_handlers import router as client_router
+from handlers.admin_handlers import router as admin_router
+from handlers.common_handles import router as common_router
 
 async def main():
+    # Инициализация базы данных
+    init_db()
+    init_schedule(days_ahead=30)
+    
+    # Инициализация бота
+    bot = Bot(token=config.TOKEN)
+    storage = MemoryStorage()
+    dp = Dispatcher(storage=storage)
+    
+    # Регистрация роутеров
+    dp.include_router(client_router)
+    dp.include_router(admin_router)
+    dp.include_router(common_router)
+    
+    # Запуск фоновых задач
+    asyncio.create_task(send_daily_reminders())
+    
+    print("✅ Бот запущен!")
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
