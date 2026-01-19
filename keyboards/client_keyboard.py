@@ -13,7 +13,8 @@ def get_main_menu_keyboard(is_admin: bool = False) -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="✨ Записаться", callback_data="record"),
         InlineKeyboardButton(text="💅 Услуги", callback_data="services")
     )
-    
+
+
     builder.row(
         InlineKeyboardButton(text="📍 Контакты", callback_data="contacts"),
         InlineKeyboardButton(text="🤗 Поддержка", callback_data="support")
@@ -24,15 +25,24 @@ def get_main_menu_keyboard(is_admin: bool = False) -> InlineKeyboardMarkup:
 def get_services_keyboard(services) -> InlineKeyboardMarkup:
     """Клавиатура с услугами"""
     builder = InlineKeyboardBuilder()
+    seen_names = set()
     
     for service in services:
-        button_text = f"{service['name']} - {service['price']}₽"
+        service_name = service['name']
+        
+        if service_name in seen_names:
+            continue
+            
+        seen_names.add(service_name)
+        
+        button_text = f"{service_name} - {service['price']}₽"
         builder.row(InlineKeyboardButton(
             text=button_text,
             callback_data=f"service_{service['service_id']}"
         ))
     
     return builder.as_markup()
+    
 
 def get_dates_keyboard(dates) -> InlineKeyboardMarkup:
     """Клавиатура с датами"""
@@ -40,6 +50,10 @@ def get_dates_keyboard(dates) -> InlineKeyboardMarkup:
     
     for date_str in dates:
         date_obj = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+        
+        if date_obj.weekday in (3, 4, 5):
+            continue
+
         day_name = get_weekday_name(date_obj.weekday())
         button_text = f"{date_obj.strftime('%d.%m')} ({day_name})"
         builder.button(
@@ -48,7 +62,7 @@ def get_dates_keyboard(dates) -> InlineKeyboardMarkup:
         )
     
     builder.adjust(2)
-    builder.row(InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_services"))
+    builder.row(InlineKeyboardButton(text="🔙 Назад в меню", callback_data="back_to_start"))
     
     return builder.as_markup()
 
@@ -80,3 +94,10 @@ def get_weekday_name(weekday: int) -> str:
     """Получить название дня недели"""
     days = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
     return days[weekday]
+
+def get_back_to_start_keyboard() -> InlineKeyboardMarkup:
+    """Главное меню"""
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text="🏠 Главное меню", callback_data="back_to_start"))
+    
+    return builder.as_markup()

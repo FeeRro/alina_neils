@@ -65,3 +65,4 @@ def get_reschedule_times_keyboard(times, booking_id: int, date_str: str) -> Inli
     builder.row(InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_reschedule"))
     
     return builder.as_markup()
+

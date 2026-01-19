@@ -36,34 +36,10 @@ async def start_handler(message: Message):
     # Отправляем приветствие
     await message.answer(
         "Привет, красотуля! 💖\n"
-        "Я бот-ассистент. Я здесь, чтобы твои ручки стали безупречными, "
+        "Я бот-ассистент. Я здесь, чтобы твои ручки стали блистательными, "
         "а запись - быстрой и простой!",
         reply_markup=get_main_menu_keyboard(is_admin=admin)
     )
-
-@router.message(Command("my_bookings"))
-async def my_bookings_handler(message: Message):
-    """Показать мои записи"""
-    bookings = get_user_bookings(message.from_user.id)
-    
-    if not bookings:
-        await message.answer("У вас пока нет активных записей.")
-        return
-    
-    text = "📋 *Ваши записи:*\n\n"
-    
-    for booking in bookings:
-        status_emoji = "✅" if booking['status'] == 'confirmed' else "⏳" if booking['status'] == 'pending' else "❌"
-        
-        dt = datetime.datetime.strptime(booking['booking_datetime'], '%Y-%m-%d %H:%M:%S')
-        
-        text += (
-            f"{status_emoji} *{booking['name']}*\n"
-            f"📅 {dt.strftime('%d.%m.%Y')} ⏰ {dt.strftime('%H:%M')}\n"
-            f"💰 {booking['price']}₽ | ID: {booking['booking_id']}\n\n"
-        )
-    
-    await message.answer(text, parse_mode="Markdown")
 
 @router.callback_query(F.data == "record")
 async def record_handler(callback: CallbackQuery, state: FSMContext):
@@ -72,9 +48,9 @@ async def record_handler(callback: CallbackQuery, state: FSMContext):
     
     services = get_services()
     await callback.message.answer(
-        "💅 *Выберите услугу:*",
+        "Выбери, какой штрих сделает тебя безупречной: 👇",
         reply_markup=get_services_keyboard(services),
-        parse_mode="Markdown"
+        parse_mode="HTML"
     )
     
     await state.set_state(BookingStates.selecting_service)
@@ -117,7 +93,7 @@ async def select_service_handler(callback: CallbackQuery, state: FSMContext):
         f"⏱ *Длительность:* {service['duration_minutes']} мин\n\n"
         "📅 *Выберите дату:*",
         reply_markup=get_dates_keyboard(available_dates),
-        parse_mode="Markdown"
+        parse_mode="HTML"
     )
     
     await state.set_state(BookingStates.selecting_date)
@@ -149,7 +125,7 @@ async def select_date_handler(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
         "⏰ *Выберите время:*",
         reply_markup=get_times_keyboard(available_times),
-        parse_mode="Markdown"
+        parse_mode="HTML"
     )
     
     await state.set_state(BookingStates.selecting_time)
@@ -182,7 +158,7 @@ async def select_time_handler(callback: CallbackQuery, state: FSMContext):
         f"⏰ *Время:* {dt.strftime('%H:%M')} - {end_time}\n\n"
         "Подтверждаете запись?",
         reply_markup=get_confirmation_keyboard(),
-        parse_mode="Markdown"
+        parse_mode="HTML"
     )
     
     # Сохраняем время
@@ -201,6 +177,7 @@ async def confirm_booking_handler(callback: CallbackQuery, state: FSMContext, bo
     # Получаем данные
     data = await state.get_data()
     user_id = callback.from_user.id
+    id_user = data.get('user_id')
     service_id = data.get('service_id')
     service_name = data.get('service_name')
     service_price = data.get('service_price')
@@ -218,7 +195,7 @@ async def confirm_booking_handler(callback: CallbackQuery, state: FSMContext, bo
         }
         
         await notify_admins_about_new_booking(
-            bot, booking_id, user_info, service_name, 
+            bot, booking_id, id_user, user_info, service_name, 
             booking_datetime, service_duration, service_price
         )
         
@@ -227,19 +204,19 @@ async def confirm_booking_handler(callback: CallbackQuery, state: FSMContext, bo
         end_time = calculate_end_time(booking_datetime, service_duration)
         
         await callback.message.answer(
-            f"🎉 *Запись успешно оформлена!* #{booking_id}\n\n"
-            f"💅 *Услуга:* {service_name}\n"
-            f"💰 *Цена:* {service_price}₽\n"
-            f"📅 *Дата:* {dt.strftime('%d.%m.%Y')}\n"
-            f"⏰ *Время:* {dt.strftime('%H:%M')} - {end_time}\n\n"
-            "⏳ *Статус:* Ожидает подтверждения\n\n"
-            "💖 *Ждем вас в салоне!*",
-            parse_mode="Markdown"
+            f"🎉 Запись успешно оформлена! #{booking_id}\n\n"
+            f"💅 Услуга: {service_name}\n"
+            f"💰 Цена: {service_price}₽\n"
+            f"📅 Дата: {dt.strftime('%d.%m.%Y')}\n"
+            f"⏰ Время: {dt.strftime('%H:%M')} - {end_time}\n\n"
+            "⏳ Статус: Ожидает подтверждения\n\n"
+            "💖 Ждем вас в салоне!",
+            parse_mode="HTML"
         )
     else:
         await callback.message.answer(
             f"😔 *Ошибка:* {message}",
-            parse_mode="Markdown"
+            parse_mode="HTML"
         )
     
     await state.clear()

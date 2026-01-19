@@ -8,9 +8,10 @@ from utils.schedule_utils import init_schedule
 from utils.notification_utils import send_daily_reminders
 
 # Импортируем обработчики
+from handlers.common_handles import router as common_router
 from handlers.client_handlers import router as client_router
 from handlers.admin_handlers import router as admin_router
-from handlers.common_handles import router as common_router
+
 
 async def main():
     # Инициализация базы данных
@@ -23,9 +24,10 @@ async def main():
     dp = Dispatcher(storage=storage)
     
     # Регистрация роутеров
+    dp.include_router(common_router)
     dp.include_router(client_router)
     dp.include_router(admin_router)
-    dp.include_router(common_router)
+
     
     # Запуск фоновых задач
     asyncio.create_task(send_daily_reminders())

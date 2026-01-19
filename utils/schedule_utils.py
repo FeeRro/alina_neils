@@ -14,10 +14,10 @@ def init_schedule(days_ahead: int = 60):
         current_date = today + datetime.timedelta(days=day)
         
         # Определяем рабочие часы
-        if current_date.weekday() == 6:  # Воскресенье
+        if current_date.weekday() == 4 or current_date.weekday() == 5 or current_date.weekday() == 3:  # Выходные
             continue
-        elif current_date.weekday() == 5:  # Суббота
-            work_hours = config.WORKING_HOURS_SATURDAY
+        elif current_date.weekday() == 6:  # Воскресенье
+            work_hours = config.WORKING_HOURS_WEEKEND
         else:  # Будни
             work_hours = config.WORKING_HOURS_WEEKDAY
         
@@ -79,12 +79,16 @@ def get_available_time_slots(date_str: str, service_duration: int) -> List[str]:
     slots_needed_for_service = service_duration // 30
     if service_duration % 30 > 0:
         slots_needed_for_service += 1
+
+    now = datetime.datetime.now()
+    current_date = now.date()
+    slot_date = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
     
     for i in range(len(slots) - slots_needed_for_service + 1):
-        slot_time, is_available = slots[i]
+        slot_time_str, is_available = slots[i]
         
         # Проверяем, свободен ли начальный слот
-        if is_available and slot_time not in busy_slots:
+        if is_available and slot_time_str not in busy_slots:
             # Проверяем, свободны ли все последующие слоты
             all_free = True
             for j in range(slots_needed_for_service):
@@ -94,7 +98,16 @@ def get_available_time_slots(date_str: str, service_duration: int) -> List[str]:
                     break
             
             if all_free:
-                available_slots.append(slot_time)
+                # Проверяем, не прошло ли уже время слота
+                slot_time = datetime.datetime.strptime(slot_time_str, "%H:%M").time()
+                slot_datetime = datetime.datetime.combine(slot_date, slot_time)
+                
+                # Добавляем буфер (30 минут) для возможности записи
+                buffer_time = datetime.timedelta(minutes=30)
+                
+                # Если дата в будущем или сегодня, но время еще не наступило (с учетом буфера)
+                if slot_date > current_date or (slot_date == current_date and slot_datetime >= (now + buffer_time)):
+                    available_slots.append(slot_time_str)
     
     return available_slots
 
@@ -110,6 +123,7 @@ def get_available_dates_with_slots(service_duration: int, days_ahead: int = 14) 
         SELECT DISTINCT slot_date 
         FROM schedule_slots 
         WHERE slot_date BETWEEN ? AND ?
+        AND (CAST(strftime('%w', slot_date) AS INTEGER) NOT IN (4, 5, 6))
         ORDER BY slot_date
     ''', (today, end_date))
     

@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from aiogram import Bot
 from database.database import get_db_connection
 from config import TOKEN
+from keyboards.admin_keyboard import get_admin_booking_actions_keyboard
 
 async def send_daily_reminders():
     """Ежедневная отправка напоминаний"""
@@ -43,15 +44,15 @@ async def send_daily_reminders():
                              f"⏰ *Время:* {dt.strftime('%H:%M')} - {end_time.strftime('%H:%M')}\n\n"
                              f"📍 *Адрес:* г. Москва, ул. Садовая Триумфальная, д. 4/10\n\n"
                              "💖 *Ждем вас!*",
-                        parse_mode="Markdown"
+                        parse_mode="HTML"
                     )
                 except Exception as e:
                     print(f"Ошибка отправки напоминания: {e}")
                 
                 await asyncio.sleep(0.1)
             
-            # Ждем до следующего дня
-            await asyncio.sleep(24 * 60 * 60)
+            # Ждем до начала за 2 часа
+            await asyncio.sleep(2 * 60 * 60)
             
         except Exception as e:
             print(f"Ошибка в daily_reminders: {e}")
@@ -59,7 +60,7 @@ async def send_daily_reminders():
         finally:
             await bot.session.close()
 
-async def notify_admins_about_new_booking(bot: Bot, booking_id: int, user_info: dict, 
+async def notify_admins_about_new_booking(bot: Bot, booking_id: int, user_id: int, user_info: dict, 
                                          service_name: str, booking_datetime: str, 
                                          duration: int, price: int):
     """Уведомить администраторов о новой записи"""
@@ -71,22 +72,23 @@ async def notify_admins_about_new_booking(bot: Bot, booking_id: int, user_info: 
     end_time = dt + timedelta(minutes=duration)
     
     message = (
-        f"📥 *Новая запись!* #{booking_id}\n\n"
-        f"👤 *Клиент:* {user_info['first_name']} "
+        f"📥 Новая запись! #{booking_id}\n\n"
+        f"👤 Клиент: {user_info['first_name']} "
         f"(@{user_info.get('username', 'нет username')})\n"
-        f"💅 *Услуга:* {service_name}\n"
-        f"💰 *Цена:* {price}₽\n"
-        f"📅 *Дата:* {dt.strftime('%d.%m.%Y')}\n"
-        f"⏰ *Время:* {dt.strftime('%H:%M')} - {end_time.strftime('%H:%M')}\n\n"
-        f"Для подтверждения: /admin"
+        f"💅 Услуга: {service_name}\n"
+        f"💰 Цена: {price}₽\n"
+        f"📅 Дата: {dt.strftime('%d.%m.%Y')}\n"
+        f"⏰ Время: {dt.strftime('%H:%M')} - {end_time.strftime('%H:%M')}\n\n"        
     )
+
     
     for admin_id in admins:
         try:
             await bot.send_message(
                 chat_id=admin_id,
+                reply_markup=get_admin_booking_actions_keyboard(booking_id, user_id),
                 text=message,
-                parse_mode="Markdown"
+                parse_mode="HTML"
             )
         except Exception as e:
             print(f"Ошибка уведомления администратора {admin_id}: {e}")
