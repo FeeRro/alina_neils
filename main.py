@@ -5,7 +5,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import Update
 from contextlib import asynccontextmanager
 
-import config
+import config as config
 from database.database import init_db
 from utils.schedule_utils import init_schedule
 from utils.notification_utils import send_daily_reminders

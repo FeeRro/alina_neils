@@ -45,7 +45,7 @@ workflows:
               YC_FUNCTION_NAME: ${{ cubes.format-name.outputs.function_name }}
               YC_FUNCTION_RUNTIME: python312
               YC_FUNCTION_ENTRYPOINT: main.handler
-              SOURCE_PATH: "./TG_BOT"
+              SOURCE_PATH: "./tg_bot"
               ENVIRONMENT: "BOT_TOKEN=${{ inputs.bot-token }}"
               PUBLIC: true
             image: cr.yandex/sourcecraft/yc-function:latest
