@@ -85,5 +85,5 @@ if __name__ == "__main__":
         asyncio.run(polling_main())
     elif MODE == "webhook":
         # Укажите ваш вебхук URL
-        WEBHOOK_URL = "https://your-domain.com/webhook"
+        WEBHOOK_URL = "https://functions.yandexcloud.net/d4el2lv6qf0mpiscgfj1"
         asyncio.run(webhook_main(WEBHOOK_URL))
