@@ -141,7 +141,7 @@ async def admin_today_handler(callback: CallbackQuery):
     bookings = get_tomorrow_bookings()
     
     if not bookings:
-        await callback.message.answer("✅ Нет записей, на сегодня.")
+        await callback.message.answer("✅ Нет записей, на завтра.")
         return
     
     for booking in bookings:

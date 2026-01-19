@@ -44,7 +44,6 @@ async def contacts_handler(callback: CallbackQuery):
         "⏰ *Часы работы:*\n"
         "Пн-Пт: 10:00 - 20:00\n"
         "Сб-Вс: 11:00 - 19:00\n"
-        "Вернутся в меню: /start"
     )
     
     await callback.message.answer(contacts_text, reply_markup=get_back_to_start_keyboard(), parse_mode="HTML")

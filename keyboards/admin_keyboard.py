@@ -34,8 +34,7 @@ def get_admin_booking_actions_keyboard(booking_id: int, user_id: int) -> InlineK
     )
     
     builder.row(
-        InlineKeyboardButton(text="🔄 Перенести", callback_data=f"admin_reschedule_{booking_id}"),
-        InlineKeyboardButton(text="📞 Связаться", url=f"tg://user?id={user_id}")
+        InlineKeyboardButton(text="🔄 Перенести", callback_data=f"admin_reschedule_{booking_id}")
     )
     
     return builder.as_markup()
