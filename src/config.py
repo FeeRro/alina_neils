@@ -1,5 +1,5 @@
-TOKEN = "8558040313:AAEsgcWTAO0-mQojc9L03cgsmY23-iXgVpk"
-ADMIN_PASSWORD = "ALINANAITS8520174"
+TOKEN = "your token"
+ADMIN_PASSWORD = "your password"
 ADMIN_ID = []
 
 DB_NAME = "users_id"
